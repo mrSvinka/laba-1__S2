@@ -1,135 +1,180 @@
-#include <iostream>
+/*
+Ввести последовательность натуральных чисел. Если последовательность упорядочена по неубыванию или по невозрастанию последней цифры,
+ удалить из последовательности простые числа, и продублировать числа кратные 12.
+  В противном случае упорядочить последовательность по неубыванию первой цифры.
+  Последовательность хранить в двусвязном циклическом списке с фиктивным элементом
+*/
 
-struct Node {
+
+#include <iostream>
+//делаем 2связ список
+struct Node 
+{
     int data;
     Node* next;
     Node* prev;
 };
+//цыклическая структура (сама на себя)
 
-class CircularDoublyLinkedList {
+
+class CircularDoublyLinkedList 
+{
+    Node* sent;
+
 public:
-    CircularDoublyLinkedList() {
-        head = new Node();
-        head->next = head;
-        head->prev = head;
+    CircularDoublyLinkedList() 
+    {
+        sent = new Node();
+        sent->next = sent;
+        sent->prev = sent;
     }
 
-    void append(int value) {
-        Node* newNode = new Node{value, head, head->prev};
-        head->prev->next = newNode;
-        head->prev = newNode;
+
+//создание нового узла и связь
+    void insert(int value) 
+    {
+        Node* newNode = new Node{value, sent, sent->prev};
+        sent->prev->next = newNode;
+        sent->prev = newNode;
     }
 
-    void processSequence() {
-        if (isSorted()) {
-            removePrimes();
-            duplicateMultiplesOf12();
-        } else {
+
+// сортированнасть
+    bool isSorted() 
+    {
+        Node* temp = sent->next;
+        bool vozr = true, ybiv = true;
+
+        while (temp != sent) 
+        {
+            if (temp->next != sent) 
+            {
+                if (temp->data > temp->next->data) vozr = false;
+                if (temp->data < temp->next->data) ybiv = false;
+            }
+            temp = temp->next;
+        }
+        return vozr || ybiv;
+    }
+
+
+//простые числша
+    bool isPrime(int num) 
+    {
+        if (num <= 1) return false;
+        for (int i = 2; i * i <= num; i++)
+            if (num % i == 0) return false;
+        return true;
+    }
+
+
+    int getFirstDigit(int num) 
+    {
+        while (num >= 10) num /= 10;
+        return num;
+    }
+
+//сорт про возростанию
+    void sortByFirstDigit() 
+    {
+
+
+        Node* current = sent->next;
+        while (current != sent) 
+        {
+            Node* nextNode = current->next;
+            while (nextNode != sent) 
+            {
+                if (getFirstDigit(current->data) > getFirstDigit(nextNode->data)) 
+                {
+                    std::swap(current->data, nextNode->data);
+                }
+                nextNode = nextNode->next;
+            }
+            current = current->next;
+        }
+    }
+
+
+    void processList() 
+    {
+        if (isSorted()) 
+        {
+            Node* current = sent->next;
+            while (current != sent) 
+            {
+                if (isPrime(current->data)) 
+                {
+                    Node* toDelete = current;
+                    current->prev->next = current->next;
+                    current->next->prev = current->prev;
+                    current = current->next;
+                    delete toDelete;
+                } 
+                else if (current->data % 12 == 0) 
+                {
+                    insert(current->data); // дубляж
+                    current = current->next;
+                } 
+                else 
+                {
+                    current = current->next;
+                }
+            }
+        } 
+        else 
+        {
+            // Упорядочить по возрост.
             sortByFirstDigit();
         }
     }
 
-    void display() {
-        Node* current = head->next;
-        while (current != head) {
-            std::cout << current->data << " ";
-            current = current->next;
+
+    void display() 
+    {
+        Node* temp = sent->next;
+        while (temp != sent) 
+        {
+            std::cout << temp->data << " ";
+            temp = temp->next;
         }
         std::cout << std::endl;
     }
 
-private:
-    Node* head;
-
-    bool isSorted() {
-        bool nonDecreasing = true, nonIncreasing = true;
-        Node* current = head->next;
-        int prev = current->data;
-        current = current->next;
-
-        while (current != head) {
-            if (prev % 10 < current->data % 10) nonIncreasing = false;
-            if (prev % 10 > current->data % 10) nonDecreasing = false;
-            prev = current->data;
+    ~CircularDoublyLinkedList() 
+    {
+        Node* current = sent->next;
+        while (current != sent) 
+        {
+            Node* toDelete = current;
             current = current->next;
+            delete toDelete;
         }
-        return nonDecreasing || nonIncreasing;
-    }
-
-    bool isPrime(int num) {
-        if (num < 2) return false;
-        for (int i = 2; i * i <= num; i++) {
-            if (num % i == 0) return false;
-        }
-        return true;
-    }
-
-    void removePrimes() {
-        Node* current = head->next;
-        while (current != head) {
-            Node* nextNode = current->next;
-            if (isPrime(current->data)) {
-                current->prev->next = current->next;
-                current->next->prev = current->prev;
-                delete current;
-            }
-            current = nextNode;
-        }
-    }
-
-    void duplicateMultiplesOf12() {
-        Node* current = head->next;
-        while (current != head) {
-            if (current->data % 12 == 0) {
-                Node* newNode = new Node{current->data, current->next, current};
-                current->next->prev = newNode;
-                current->next = newNode;
-                current = newNode; // переходим к новому узлу
-            }
-            current = current->next;
-        }
-    }
-
-    void sortByFirstDigit() {
-        // Простая сортировка по первой цифре
-        // Для простоты реализуем пузырьковую сортировку
-        bool swapped;
-        do {
-            swapped = false;
-            Node* current = head->next;
-            while (current->next != head) {
-                int firstDigit1 = getFirstDigit(current->data);
-                int firstDigit2 = getFirstDigit(current->next->data);
-                if (firstDigit1 > firstDigit2) {
-                    std::swap(current->data, current->next->data);
-                    swapped = true;
-                }
-                current = current->next;
-            }
-        } while (swapped);
-    }
-
-    int getFirstDigit(int num) {
-        while (num >= 10) num /= 10;
-        return num;
+        delete sent;
     }
 };
 
-int main() {
+int main() 
+{
     CircularDoublyLinkedList list;
     int n, value;
+//данные
 
-    std::cout << "Введите количество натуральных чисел: ";
+
+    std::cout << "количество чисел: ";
     std::cin >> n;
+    std::cout << "числа: ";
 
-    std::cout << "Введите числа: ";
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i) 
+    {
         std::cin >> value;
-        list.append(value);
+        list.insert(value);
     }
 
-    list.processSequence();
-    std::cout << "Результат: ";
+
+//результат
+    list.processList();
+    std::cout << "результат: ";
     list.display();
 
     return 0;
