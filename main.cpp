@@ -14,15 +14,15 @@ struct Node
     Node* next;
     Node* prev;
 };
-//цыклическая структура (сама на себя)
+//цыклическая структура
 
 
-class CircularDoublyLinkedList 
+class L_List 
 {
     Node* sent;
 
 public:
-    CircularDoublyLinkedList() 
+    L_List() 
     {
         sent = new Node();
         sent->next = sent;
@@ -30,7 +30,7 @@ public:
     }
 
 
-//создание нового узла и связь
+//создание новой чати списка и добовление в конеец
     void insert(int value) 
     {
         Node* newNode = new Node{value, sent, sent->prev};
@@ -68,14 +68,14 @@ public:
     }
 
 
-    int getFirstDigit(int num) 
+    int F_Digit(int num) 
     {
         while (num >= 10) num /= 10;
         return num;
     }
 
 //сорт про возростанию
-    void sortByFirstDigit() 
+    void F_Digit() 
     {
 
 
@@ -85,7 +85,7 @@ public:
             Node* nextNode = current->next;
             while (nextNode != sent) 
             {
-                if (getFirstDigit(current->data) > getFirstDigit(nextNode->data)) 
+                if (F_Digit(current->data) > F_Digit(nextNode->data)) 
                 {
                     std::swap(current->data, nextNode->data);
                 }
@@ -125,7 +125,7 @@ public:
         else 
         {
             // Упорядочить по возрост.
-            sortByFirstDigit();
+            F_Digit();
         }
     }
 
@@ -141,29 +141,18 @@ public:
         std::cout << std::endl;
     }
 
-    ~CircularDoublyLinkedList() 
-    {
-        Node* current = sent->next;
-        while (current != sent) 
-        {
-            Node* toDelete = current;
-            current = current->next;
-            delete toDelete;
-        }
-        delete sent;
-    }
 };
 
 int main() 
 {
-    CircularDoublyLinkedList list;
+    L_List list;
     int n, value;
 //данные
 
 
     std::cout << "количество чисел: ";
     std::cin >> n;
-    std::cout << "числа: ";
+    std::cout << "числа: \n";
 
     for (int i = 0; i < n; ++i) 
     {
@@ -179,4 +168,3 @@ int main()
 
     return 0;
 }
-
